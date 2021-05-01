@@ -1,17 +1,41 @@
 
 					device 		zxspectrum48
 
-					org 		8000h
-
 stack_top:
-start:				ld			sp, stack_top
-					ld			l, 'X'
-					ld			a, 0x47
-					ld			c, 4
-					ld			b, 4
-					call		DrawChar
-@halt:				halt
-					jp			@halt
+
+					include		"irq.asm"
+
+start:				di
+					ld			sp, stack_top
+					ld			a, 80h
+					ld			i, a
+					im			2
+					ei
+.loop:				halt
+
+
+					jp			.loop
+
+snakeDirX			db			0
+snakeDirY			db			1
+
+snakeHead			db			2
+snakeTail			db			0
+
+MAX_SNAKE_LENGTH = 128
+
+					align		256, 0
+
+snakeParts:			db			4
+					db			4
+					db			5
+					db			4
+					db			5
+					db			5
+					dup			MAX_SNAKE_LENGTH-3
+					db			0
+					db			0
+					edup
 
 					include		"draw.asm"
 

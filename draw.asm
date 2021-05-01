@@ -11,10 +11,10 @@ DrawChar:       ; Сохраняем А
                 ex      af, af'
                 ; Преобразуем координату Y в пикселях в значение в знакоместах
                 ld		a, b
-                rrca
-                rrca
-                rrca
-                and		0x1f
+                rla
+                rla
+                rla
+                and		0xf8
                 ld		b, a
                 ; Расчитываем адрес назначения
                 call    CalcScreenAddr
@@ -27,11 +27,11 @@ DrawChar:       ; Сохраняем А
                 add     hl, bc          ; HL => адрес пикселей символа
                 ; Рисуем
                 ld      b, 8
-@loop:          ld      a, (hl)
+.loop:          ld      a, (hl)
                 ld      (de), a
                 inc     d
                 inc     hl
-                djnz    @loop
+                djnz    .loop
                 ; Расчитываем адрес в области атрибутов
                 dec     d
                 ld      a, d

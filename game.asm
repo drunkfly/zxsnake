@@ -104,7 +104,7 @@ GameOver:			ld			a, SCREEN_ATTR
 					call		ROM_BEEP
 					
 					call		WaitNoKey
-					jr			WaitAnyKey
+					jp			WaitAnyKey
 
 .message:			db			' YOU LOST ',0
 

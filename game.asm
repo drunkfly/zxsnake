@@ -89,6 +89,19 @@ GameOver:			ld			a, SCREEN_ATTR
 					ld			bc, 0x0C0B			; Y = 12, X = 11
 					ld			iyl, 0xC2			; Красный на черном, яркий, мигающий
 					call		DrawString
+
+					ld			hl, 497
+					ld			de, 208
+					call		ROM_BEEP
+					ld			hl, 397
+					ld			de, 208
+					call		ROM_BEEP
+					ld			hl, 297
+					ld			de, 208
+					call		ROM_BEEP
+					ld			hl, 197
+					ld			de, 208
+					call		ROM_BEEP
 					
 					call		WaitNoKey
 					jr			WaitAnyKey

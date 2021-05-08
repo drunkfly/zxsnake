@@ -5,6 +5,8 @@ SCREEN_ATTR = 0
 SNAKE_ATTR = 0x44
 APPLE_ATTR = 0x46
 
+ROM_BEEP = 949
+
 stack_top:
 
 					include		"irq.asm"
@@ -198,7 +200,11 @@ RunGame:			ld			a, SCREEN_ATTR
 					call		DrawChar			; стираем хвост
 					jr			.doneApple
 
-.isApple:			call		SpawnApple
+.isApple:			ld			hl, 497
+					ld			de, 208
+					call		ROM_BEEP
+
+					call		SpawnApple
 
 .doneApple:
 					jp			.loop

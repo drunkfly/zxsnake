@@ -76,6 +76,56 @@ DrawChar:       ; Сохраняем А
                 ld      (de), a
                 ret
 
+	ifdef GRAPHIC_SNAKE
+
+                ; Input:
+                ;   L = symbol
+                ;   A = attribute
+                ;   C = X (знакоместо)
+                ;   B = Y (знакоместо)
+
+DrawUDG:       	; Сохраняем А
+                ex      af, af'
+                ; Преобразуем координату Y в пикселях в значение в знакоместах
+                ld		a, b
+                rla
+                rla
+                rla
+                and		0xf8
+                ld		b, a
+                ; Расчитываем адрес назначения
+                call    CalcScreenAddr
+                ; Расчитываем адрес символа
+                ld      h, 0
+                add     hl, hl          ; HL+HL = HL*2
+                add     hl, hl          ; (HL*2)+(HL*2) = HL*4
+                add     hl, hl          ; HL*8
+                ld      bc, UDG
+                add     hl, bc          ; HL => адрес пикселей символа
+                ; Рисуем
+                ld      b, 8
+.loop:          ld      a, (hl)
+                ld      (de), a
+                inc     d
+                inc     hl
+                djnz    .loop
+                ; Расчитываем адрес в области атрибутов
+                dec     d
+                ld      a, d
+                rra
+                rra
+                rra
+                and     0x03
+                or      0x58
+                ld      d, a
+                ; Восстанавливаем A
+                ex      af, af'
+                ; Записываем атрибут
+                ld      (de), a
+                ret
+
+	endif
+
                 ; Input:
                 ;   C = X
                 ;   B = Y (пиксели)

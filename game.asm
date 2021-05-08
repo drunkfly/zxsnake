@@ -1,6 +1,8 @@
 
 					device 		zxspectrum48
 
+					define 		GRAPHIC_SNAKE
+
 SCREEN_ATTR = 0
 SNAKE_ATTR = 0x44
 APPLE_ATTR = 0x46
@@ -114,12 +116,22 @@ RunGame:			ld			a, SCREEN_ATTR
 					call		ClearScreenAttr
 					ld			hl, 0x0100
 					ld			(snakeDirX), hl
-					ld			hl, 0x0002
+					ld			hl, 0x000c
 					ld			(snakeHead), hl
-					ld			hl, 0x0404
+					ld			hl, 0x0201
 					ld			(snakeParts), hl
-					ld			hl, 0x0405
+					ld			hl, 0x0101
 					ld			(snakeParts+2), hl
+					ld			hl, 0x0102
+					ld			(snakeParts+4), hl
+					ld			hl, 0x0103
+					ld			(snakeParts+6), hl
+					ld			hl, 0x0203
+					ld			(snakeParts+8), hl
+					ld			hl, 0x0303
+					ld			(snakeParts+10), hl
+					ld			hl, 0x0302
+					ld			(snakeParts+12), hl
 					xor			a
 					ld			(counter), a
 					call		SpawnApple
@@ -189,9 +201,11 @@ RunGame:			ld			a, SCREEN_ATTR
 					ld			(.screenAttr+1), a
 
 					; рисуем голову по новым координатам
+	ifndef GRAPHIC_SNAKE
 					ld			l, 'X'
 					ld			a, SNAKE_ATTR
 					call		DrawChar
+	endif
 
 					; проверяем, нужно ли двигать хвост и двигаем, если не съели яблоко
 
@@ -220,7 +234,259 @@ RunGame:			ld			a, SCREEN_ATTR
 					call		SpawnApple
 
 .doneApple:
+
+	ifdef GRAPHIC_SNAKE	
+
+					ld			a, (snakeTail)
+					ld			l, a
+					ld			h, snakeParts / 256
+
+					; рисуем хвост
+
+					ld			c, (hl)  			; BC - координаты хвоста
+					inc			l
+					ld			b, (hl)
+					inc			l
+
+					ld			e, (hl)				; DE - координаты следующей части
+					inc			l
+					ld			d, (hl)
+					dec			l
+
+					call		GetNeighbors
+
+					push		hl
+					ld			l, d
+					ld			a, SNAKE_ATTR
+					call		DrawUDG
+					pop			hl
+
+.drawLoop:			dec			l
+					ld			d, (hl)				; DE - координаты предыдущей части
+					dec			l
+					ld			e, (hl)
+					inc			l
+					inc			l
+
+					ld			c, (hl)  			; BC - координаты текущей части
+					inc			l
+					ld			b, (hl)
+					dec			l
+
+					call		GetNeighbors
+
+					ld			c, (hl)  			; BC - координаты текущей части
+					inc			l
+					ld			b, (hl)
+					inc			l
+
+					ld			a, (snakeHead)
+					inc			a
+					inc			a
+					cp			l
+					jr			z, .drawHead
+
+					ld			ixl, d
+
+					ld			e, (hl)				; DE - координаты следующей части
+					inc			l
+					ld			d, (hl)
+					dec			l
+
+					call		GetNeighbors
+
+					ld			a, d
+					or			ixl
+
+					push		hl
+					ld			l, a
+					ld			a, SNAKE_ATTR
+					call		DrawUDG
+					pop			hl
+
+					jr			.drawLoop
+
+.drawHead:			
+					ld			l, d
+					ld			a, SNAKE_ATTR
+					call		DrawUDG
+
+	endif
+
 					jp			.loop
+
+	ifdef GRAPHIC_SNAKE
+
+					; Output:
+					;   D = neighbor bit mask
+
+GetNeighbors:		ld			a, d
+					cp 			b
+
+					ld			d, 0
+
+					jr			z, .skip1
+					jr			c, .skip1_1
+					set			3, d
+					jr			.skip1
+.skip1_1:			set			2, d
+.skip1:
+
+					ld			a, e
+					cp 			c
+					jr			z, .skip2
+					jr			c, .skip2_1
+					set			1, d
+					jr			.skip2
+.skip2_1:			set			0, d
+
+.skip2:				ret
+
+UDG:				db			0b00000000
+					db			0b00000000
+					db			0b00000000
+					db			0b00011000
+					db			0b00011000
+					db			0b00000000
+					db			0b00000000
+					db			0b00000000
+
+					db			0b00000000
+					db			0b00000000
+					db			0b00000000
+					db			0b11111000
+					db			0b11111000
+					db			0b00000000
+					db			0b00000000
+					db			0b00000000
+
+					db			0b00000000
+					db			0b00000000
+					db			0b00000000
+					db			0b00011111
+					db			0b00011111
+					db			0b00000000
+					db			0b00000000
+					db			0b00000000
+
+					db			0b00000000
+					db			0b00000000
+					db			0b00000000
+					db			0b11111111
+					db			0b11111111
+					db			0b00000000
+					db			0b00000000
+					db			0b00000000
+
+					db			0b00011000
+					db			0b00011000
+					db			0b00011000
+					db			0b00011000
+					db			0b00011000
+					db			0b00000000
+					db			0b00000000
+					db			0b00000000
+
+					db			0b00011000
+					db			0b00011000
+					db			0b00011000
+					db			0b11111000
+					db			0b11111000
+					db			0b00000000
+					db			0b00000000
+					db			0b00000000
+
+					db			0b00011000
+					db			0b00011000
+					db			0b00011000
+					db			0b00011111
+					db			0b00011111
+					db			0b00000000
+					db			0b00000000
+					db			0b00000000
+
+					db			0b00011000
+					db			0b00011000
+					db			0b00011000
+					db			0b11111111
+					db			0b11111111 
+					db			0b00000000
+					db			0b00000000
+					db			0b00000000
+
+					db			0b00000000
+					db			0b00000000
+					db			0b00000000
+					db			0b00011000
+					db			0b00011000
+					db			0b00011000
+					db			0b00011000
+					db			0b00011000
+
+					db			0b00000000
+					db			0b00000000
+					db			0b00000000
+					db			0b11111000
+					db			0b11111000
+					db			0b00011000
+					db			0b00011000
+					db			0b00011000
+
+					db			0b00000000
+					db			0b00000000
+					db			0b00000000
+					db			0b00011111
+					db			0b00011111
+					db			0b00011000
+					db			0b00011000
+					db			0b00011000
+
+					db			0b00000000
+					db			0b00000000
+					db			0b00000000
+					db			0b11111111
+					db			0b11111111
+					db			0b00011000
+					db			0b00011000
+					db			0b00011000
+
+					db			0b00011000
+					db			0b00011000
+					db			0b00011000
+					db			0b00011000
+					db			0b00011000
+					db			0b00011000
+					db			0b00011000
+					db			0b00011000
+
+					db			0b00011000
+					db			0b00011000
+					db			0b00011000
+					db			0b11111000
+					db			0b11111000
+					db			0b00011000
+					db			0b00011000
+					db			0b00011000
+
+					db			0b00011000
+					db			0b00011000
+					db			0b00011000
+					db			0b00011111
+					db			0b00011111
+					db			0b00011000
+					db			0b00011000
+					db			0b00011000
+
+					db			0b00011000
+					db			0b00011000
+					db			0b00011000
+					db			0b11111111 
+					db			0b11111111
+					db			0b00011000
+					db			0b00011000
+					db			0b00011000
+
+	endif
 
 ; 111 1111
 ;     ++++ -- X*2   0..16 => 0,2,4,8,..,30
